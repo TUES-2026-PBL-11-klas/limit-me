@@ -20,7 +20,8 @@
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
   * [Run Locally](#run-locally)
-  * [Docker Cluster](#docker-cluster)
+  * [Run with Docker Compose](#run-with-docker-compose)
+* [CI/CD](#cicd)
 * [Usage](#usage)
 * [Roadmap](#roadmap)
 * [License](#license)
@@ -45,8 +46,8 @@ TBD – mobile UI screenshots will be added later.
 
 - **Client**: React Native (Expo)
 - **Server**: Java, Spring Boot
-- **Database**: PostgreSQL
-- **DevOps**: Docker, Docker Compose
+- **Database**: PostgreSQL (Supabase)
+- **DevOps**: Docker, Docker Compose, GitHub Actions, Docker Hub
 
 ### Features
 
@@ -60,22 +61,28 @@ TBD – mobile UI screenshots will be added later.
 
 ### Environment Variables
 
-Backend (Spring Boot) expects:
+Backend (Spring Boot) expects these environment variables:
 
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
 - `SPRING_DATASOURCE_PASSWORD`
 - `SPRING_JPA_HIBERNATE_DDL_AUTO` (optional, e.g. `update`)
 
-When running with Docker Compose these are already provided in `docker-compose.yml`.
+For Docker Compose, create a root `.env` file (this repo provides an example template):
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the values in `.env`. Do not commit `.env`.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js and npm (for the Expo/React Native frontend).
-- Java 21+ (or matching your Spring Boot setup) and Maven (for the backend, if not using Docker).
-- Docker & Docker Compose (for the local cluster).
+- Java 17+ and Maven (for the backend, if not using Docker).
+- Docker & Docker Compose (to run the backend container locally).
 
 ### Installation
 
@@ -106,8 +113,11 @@ npx expo start
 
 **Backend (Spring Boot, without Docker):**
 
-1. Start a local PostgreSQL instance and create a database named `screentracker`.
-2. Make sure `application.properties` in `backend` has the correct DB credentials.
+1. Make sure you have PostgreSQL connection credentials (e.g. Supabase).
+2. Export the required env vars or configure them in your IDE run configuration:
+   - `SPRING_DATASOURCE_URL`
+   - `SPRING_DATASOURCE_USERNAME`
+   - `SPRING_DATASOURCE_PASSWORD`
 3. Run:
 
 ```bash
@@ -115,18 +125,31 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-### Docker Cluster
+### Run with Docker Compose
 
-To run the backend and PostgreSQL in a local Docker cluster:
+To run the backend container locally (it connects to PostgreSQL using the credentials from your root `.env`):
 
 ```bash
 docker compose up --build
 ```
 
-This will start:
+This will start the Spring Boot backend on port `8080`.
 
-- `db`: PostgreSQL 16 with database `screentracker`.
-- `backend`: Spring Boot backend on port `8080` connected to the `db` service.
+If you want to run with a prebuilt image (for example from Docker Hub), you can switch the `backend` service from `build:` to `image:` in `docker-compose.yml`.
+
+## CI/CD
+
+This project includes a GitHub Actions workflow that automatically builds and publishes the backend Docker image to Docker Hub on every push to `main`:
+
+- Workflow: `.github/workflows/dockerhub-backend.yml`
+- Tags:
+  - `latest`
+  - `<commit-sha>`
+
+Docker Hub credentials are stored as GitHub repository secrets:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN` (Docker Hub personal access token)
 
 ## Usage
 
