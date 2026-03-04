@@ -3,6 +3,7 @@ WORKDIR /app
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
 COPY src src
+RUN chmod +x mvnw
 RUN ./mvnw -q -DskipTests package
 #RUN ./mvnw clean install -U
 
